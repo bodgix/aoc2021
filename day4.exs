@@ -117,14 +117,15 @@ defmodule Bingo do
 
   defp check_winner(bingo), do: check_winner(%{bingo | boards: []}, bingo.boards)
 
-  defp check_winner(%__MODULE__{} = bingo, [%{winner: true} = winning_board | rest]) do
-    new_bingo = %{
-      bingo
-      | winning_boards: [winning_board | bingo.winning_boards]
-    }
-
-    check_winner(new_bingo, rest)
-  end
+  defp check_winner(%__MODULE__{} = bingo, [%{winner: true} = winning_board | rest]),
+    do:
+      check_winner(
+        %{
+          bingo
+          | winning_boards: [winning_board | bingo.winning_boards]
+        },
+        rest
+      )
 
   defp check_winner(%__MODULE__{} = bingo, [regular_board | rest]),
     do: check_winner(%{bingo | boards: [regular_board | bingo.boards]}, rest)
