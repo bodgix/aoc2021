@@ -66,7 +66,7 @@ defmodule Bingo do
     end
   end
 
-  defstruct boards: [], numbers: [], winning_board: [], last_number: nil
+  defstruct boards: [], numbers: [], winning_boards: [], last_number: nil, part: 1
 
   alias __MODULE__.Board
 
@@ -92,7 +92,12 @@ defmodule Bingo do
     |> Enum.map(&Board.parse/1)
   end
 
-  def play(%__MODULE__{winning_board: [], numbers: [number | rest]} = bingo) do
+  def play(%__MODULE__{winning_boards: winning_boards, part: 1} = bingo)
+      when length(winning_boards) > 0,
+      do: bingo
+
+  def play(%__MODULE__{numbers: [number | rest], boards: boards} = bingo)
+      when length(boards) > 0 do
     new_bingo =
       update_boards(bingo, number)
       |> check_winner()
@@ -100,7 +105,7 @@ defmodule Bingo do
     play(%{new_bingo | numbers: rest, last_number: number})
   end
 
-  def play(bingo), do: bingo
+  def play(%__MODULE__{boards: []} = bingo), do: bingo
 
   defp update_boards(%__MODULE__{boards: boards} = bingo, number) do
     new_boards =
@@ -110,9 +115,21 @@ defmodule Bingo do
     %{bingo | boards: new_boards}
   end
 
-  defp check_winner(%__MODULE__{boards: boards} = bingo) do
-    %{bingo | winning_board: [boards |> Enum.filter(& &1.winner) | bingo.winning_board], boards: boards |> Enum.filter(&(!&1.winner))}
+  defp check_winner(bingo), do: check_winner(%{bingo | boards: []}, bingo.boards)
+
+  defp check_winner(%__MODULE__{} = bingo, [%{winner: true} = winning_board | rest]) do
+    new_bingo = %{
+      bingo
+      | winning_boards: [winning_board | bingo.winning_boards]
+    }
+
+    check_winner(new_bingo, rest)
   end
+
+  defp check_winner(%__MODULE__{} = bingo, [regular_board | rest]),
+    do: check_winner(%{bingo | boards: [regular_board | bingo.boards]}, rest)
+
+  defp check_winner(%__MODULE__{} = bingo, []), do: bingo
 end
 
 bingo =
@@ -122,11 +139,25 @@ bingo =
   |> String.split("\n")
   |> Enum.map(&String.trim/1)
   |> Bingo.parse()
+
+part1 =
+  %{bingo | part: 1}
   |> Bingo.play()
 
-bingo.winning_board
+part2 =
+  %{bingo | part: 2}
+  |> Bingo.play()
+
+part1.winning_boards
 |> hd()
 |> Bingo.Board.unmarked_numbers()
 |> Enum.sum()
-|> Kernel.*(bingo.last_number)
+|> Kernel.*(part1.last_number)
+|> IO.puts()
+
+part2.winning_boards
+|> hd()
+|> Bingo.Board.unmarked_numbers()
+|> Enum.sum()
+|> Kernel.*(part2.last_number)
 |> IO.puts()
