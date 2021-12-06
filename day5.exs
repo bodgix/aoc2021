@@ -66,55 +66,44 @@ defmodule Hydrothermal do
     }
   end
 
-  # defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector) do
-  #   for x <- x1..x2, y <- y1..y2, point_on_line?(vector, {x, y}), do: {x, y}
-  # end
-  defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector) when x1 > x2 do
+  defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = _vector)
+       when x1 > x2 do
     points_for_line(%{"x1" => x2, "y1" => y2, "x2" => x1, "y2" => y1})
   end
 
-  defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector) do
+  defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => _x2, "y2" => _y2} = vector) do
     {dx, dy} = get_delta(vector)
 
-    0..(x2 - x1)
+    0..vector_length(vector)
     |> Enum.map(fn point_num ->
       {x1 + point_num * dx, y1 + point_num * dy}
     end)
   end
 
-  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = _vector)
        when x1 < x2 and y1 < y2,
        do: {1, 1}
 
-  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = _vector)
        when x1 == x2 and y1 < y2,
        do: {0, 1}
 
-  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = _vector)
        when x1 < x2 and y1 > y2,
        do: {1, -1}
 
-  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = _vector)
        when x1 == x2 and y1 > y2,
        do: {0, -1}
 
-  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = _vector)
        when x1 < x2 and y1 == y2,
        do: {1, 0}
 
-  @doc """
-  Checks if point {x, y} lays on the line established by a vector
-
-  https://stackoverflow.com/a/11908158/2782089
-  """
-  defp point_on_line?(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2}, {x, y}) do
-    dxc = x - x1
-    dyc = y - y1
-
-    dxl = x2 - x
-    dyl = y2 - y
-
-    dxc * dyl - dyc * dxl == 0
+  defp vector_length(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2}) do
+    (:math.pow(x2 - x1, 2) + :math.pow(y2 - y1, 2))
+    |> :math.sqrt()
+    |> trunc()
   end
 end
 
