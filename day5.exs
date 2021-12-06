@@ -66,9 +66,41 @@ defmodule Hydrothermal do
     }
   end
 
-  defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector) do
-    for x <- x1..x2, y <- y1..y2, point_on_line?(vector, {x, y}), do: {x, y}
+  # defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector) do
+  #   for x <- x1..x2, y <- y1..y2, point_on_line?(vector, {x, y}), do: {x, y}
+  # end
+  defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector) when x1 > x2 do
+    points_for_line(%{"x1" => x2, "y1" => y2, "x2" => x1, "y2" => y1})
   end
+
+  defp points_for_line(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector) do
+    {dx, dy} = get_delta(vector)
+
+    0..(x2 - x1)
+    |> Enum.map(fn point_num ->
+      {x1 + point_num * dx, y1 + point_num * dy}
+    end)
+  end
+
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+       when x1 < x2 and y1 < y2,
+       do: {1, 1}
+
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+       when x1 == x2 and y1 < y2,
+       do: {0, 1}
+
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+       when x1 < x2 and y1 > y2,
+       do: {1, -1}
+
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+       when x1 == x2 and y1 > y2,
+       do: {0, -1}
+
+  defp get_delta(%{"x1" => x1, "y1" => y1, "x2" => x2, "y2" => y2} = vector)
+       when x1 < x2 and y1 == y2,
+       do: {1, 0}
 
   @doc """
   Checks if point {x, y} lays on the line established by a vector
