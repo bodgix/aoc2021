@@ -1,12 +1,15 @@
 defmodule SyntaxChecker do
   @opening_brackets %{?) => ?(, ?] => ?[, ?} => ?{, ?> => ?<}
   @error_scores %{?) => 3, ?] => 57, ?} => 1197, ?> => 25137}
-
   @bracket_scores %{?( => 1, ?[ => 2, ?{ => 3, ?< => 4}
 
   defstruct incomplete: [], corrupt: [], input: nil, score1: 0, score2: 0
 
-  def new(input) when is_binary(input), do: %__MODULE__{input: parse(input)}
+  def solve(input) when is_binary(input) do
+    %__MODULE__{input: parse(input)}
+    |> find_incomplete_and_corrupt()
+    |> calculate_scores()
+  end
 
   def find_incomplete_and_corrupt(%__MODULE__{input: input} = checker) when is_list(input) do
     input
@@ -64,9 +67,7 @@ end
 System.argv()
 |> hd()
 |> File.read!()
-|> SyntaxChecker.new()
-|> SyntaxChecker.find_incomplete_and_corrupt()
-|> SyntaxChecker.calculate_scores()
+|> SyntaxChecker.solve()
 |> (fn %{score1: score1, score2: score2} ->
       IO.puts("Part1: #{score1}\nPart2: #{score2}")
     end).()
